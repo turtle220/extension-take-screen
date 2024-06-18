@@ -1,0 +1,28 @@
+{
+    "manifest_version": 3,
+    "name": "Selection Capture",
+    "version": "1.0",
+    "description": "Capture a selected part of the screen and download the image.",
+    "permissions": [
+      "activeTab",
+      "scripting",
+      "downloads"
+    ],
+    "action": {
+      "default_popup": "popup.html",
+      "default_icon": {
+        "16": "icon.png",
+        "48": "icon.png",
+        "128": "icon.png"
+      }
+    },
+    "background": {
+      "service_worker": "background.js"
+    },
+    "content_scripts": [
+      {
+        "matches": ["<all_urls>"],
+        "js": ["content.js"]
+      }
+    ]
+}  
