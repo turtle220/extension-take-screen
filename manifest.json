@@ -1,28 +1,51 @@
 {
-    "manifest_version": 3,
-    "name": "Selection Capture",
-    "version": "1.0",
-    "description": "Capture a selected part of the screen and download the image.",
-    "permissions": [
-      "activeTab",
-      "scripting",
-      "downloads"
-    ],
-    "action": {
-      "default_popup": "popup.html",
-      "default_icon": {
-        "16": "icon.png",
-        "48": "icon.png",
-        "128": "icon.png"
-      }
-    },
-    "background": {
-      "service_worker": "background.js"
-    },
-    "content_scripts": [
-      {
-        "matches": ["<all_urls>"],
-        "js": ["content.js"]
-      }
-    ]
-}  
+  "manifest_version": 3,
+  "name": "Take a Screen",
+  "version": "1.0",
+  "description": "Capture a selected part of the screen and download the image.",
+  "permissions": [
+    "storage",
+    "tabs",
+    "scripting",
+    "activeTab"
+  ],
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://*.example.com/*"],
+      "include_globs": ["*example.com/???s/*"],
+      "match_origin_as_fallback": false,
+      "match_about_blank": false,
+      "run_at": "document_idle",
+      "js": [
+        "content.js"
+      ]
+    }
+  ],
+  "action": {
+    "default_icon": {
+      "16": "icon.png",
+      "48": "icon.png",
+      "128": "icon.png"
+    }
+  },
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "images/vintagecards_logo.png",
+        "images/vintage_f_logo.svg",
+        "images/optional.png",
+        "images/camera.png"
+      ],
+      "matches": [
+        "<all_urls>"
+      ]
+    }
+  ],
+  "content_security_policy": {
+    "extension_pages": "img-src 'self' chrome-extension://*; script-src 'self'; object-src 'self';"
+  }
+}

@@ -1,16 +1,48 @@
-body {
+  
+  body {
     font-family: Arial, sans-serif;
   }
   
   #capture {
-    display: block;
+    display: flex;
     margin: 10px auto;
     padding: 10px 20px;
-    font-size: 16px;
+    font-size: 12px;
+    font-weight: bold;
+    color: white;
+    background-color: #007BFF;
+    border: none;
+    border-radius: 5px;
     cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    width: 120px;
+  }
+  
+  #capture:hover {
+    background-color: #0056b3;
+    transform: translateY(-2px);
+  }
+  
+  #capture:active {
+    background-color: #004080;
+    transform: translateY(0);
   }
   
   div.overlay {
     background-color: rgba(0, 0, 0, 0.5);
   }
   
+  /* Modal overlay */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10001;
+}
