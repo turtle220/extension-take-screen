@@ -379,7 +379,7 @@ function showModal(message, dataUrl) {
   const BackButtonText = document.createElement('span');
 
   if (backImage === '') {
-    imgBackElement.src = chrome.runtime.getURL('images/optional.png');
+    imgBackElement.src = chrome.runtime.getURL('images/optional.svg');
     imgBackElement.className = 'modal-img';
     imgBackElement.style.width = '145px';
     imgBackElement.style.height = '263px';
