@@ -1,5 +1,7 @@
 let frontImage = '';
 let backImage = '';
+let frontBlobImage = '';
+let backBlobImage = '';
 let imgURL = '';
 let flag = false;
 
@@ -200,7 +202,7 @@ function addModalStyles() {
       font-weight: 700;
       align-items: center;
       display: flex;
-      justify-content: center;
+      justify-content: space-evenly;
 
     }
     .modal-title-div {
@@ -208,6 +210,7 @@ function addModalStyles() {
       font-family: 'Poppins';
       font-weight: 600;
       padding-bottom: 10px;
+      color: black;
     }
     .modal-camera-img {
       width: 18px;
@@ -217,20 +220,20 @@ function addModalStyles() {
   document.head.appendChild(style);
 }
 
-function base64toBlob(base64Data, contentType='image/png') {
+function base64toBlob(base64Data, contentType = 'image/png') {
   const byteCharacters = atob(base64Data);
   const byteArrays = [];
 
   for (let offset = 0; offset < byteCharacters.length; offset += 512) {
-      const slice = byteCharacters.slice(offset, offset + 512);
+    const slice = byteCharacters.slice(offset, offset + 512);
 
-      const byteNumbers = new Array(slice.length);
-      for (let i = 0; i < slice.length; i++) {
-          byteNumbers[i] = slice.charCodeAt(i);
-      }
+    const byteNumbers = new Array(slice.length);
+    for (let i = 0; i < slice.length; i++) {
+      byteNumbers[i] = slice.charCodeAt(i);
+    }
 
-      const byteArray = new Uint8Array(byteNumbers);
-      byteArrays.push(byteArray);
+    const byteArray = new Uint8Array(byteNumbers);
+    byteArrays.push(byteArray);
   }
 
   return new Blob(byteArrays, { type: contentType });
@@ -243,18 +246,17 @@ async function uploadImageToImgBB(base64Image) {
 
   const apiKey = '4be78c892c5170fec7e1da59f52e3fda';
   const response = await fetch('https://api.imgbb.com/1/upload?key=' + apiKey, {
-      method: 'POST',
-      body: formData
+    method: 'POST',
+    body: formData
   });
 
   const data = await response.json();
   if (data.status === 200) {
-      return data.data.url;
+    return data.data.url;
   } else {
-      throw new Error('Failed to upload image to ImgBB');
+    throw new Error('Failed to upload image to ImgBB');
   }
 }
-
 
 function showModal(message, dataUrl) {
   addModalStyles();
@@ -269,22 +271,18 @@ function showModal(message, dataUrl) {
   header.className = 'modal-header';
 
   const imgHeaderLogo = document.createElement('img');
-  // const extensionId = chrome.runtime.id;
 
   const vintagecards_logo = chrome.runtime.getURL('images/vintagecards_logo.png');
-  console.log(vintagecards_logo, '-----vintage log here---------');
   imgHeaderLogo.src = vintagecards_logo;
   imgHeaderLogo.alt = 'Vintage Cards Logo';
   header.appendChild(imgHeaderLogo);
 
 
   const imgHeaderRightLogo = document.createElement('img');
-  // closeButton.innerText = 'X';
   const vintage_f_logo = chrome.runtime.getURL('images/vintage_f_logo.svg')
 
   imgHeaderRightLogo.src = vintage_f_logo;
   imgHeaderRightLogo.className = 'modal-close-button';
-  // closeButton.onclick = () => document.body.removeChild(modalOverlay);
   header.appendChild(imgHeaderRightLogo);
 
   // Create content
@@ -295,115 +293,121 @@ function showModal(message, dataUrl) {
   const imgContainer = document.createElement('div');
   imgContainer.className = 'modal-img-container';
 
+
   // capturedImages.push(imageUrl);
-  if(message.cardType === true) {
+  if (message.cardType === true) {
     frontImage = dataUrl;
   } else {
     backImage = dataUrl;
   }
 
-    // Create a parent div for each image and its footer
-    const FrontDiv = document.createElement('div');
-    FrontDiv.className = 'modal-img-parent';
-    
-    const imgFrontTitleDiv = document.createElement('div');
-    imgFrontTitleDiv.className = 'modal-title-div';
-    imgFrontTitleDiv.innerText = 'Front Of Card';
-    // Create a div for the image
-    const imgFrontDiv = document.createElement('div');
-    imgFrontDiv.className = 'modal-img-div';
-    
-    // Create img element for the captured image
-    const imgFrontElement = document.createElement('img');
-    imgFrontElement.src = frontImage;
-    imgFrontElement.className = 'modal-img';
-    imgFrontDiv.appendChild(imgFrontElement);
+  uploadImageToImgBB(frontImage).then(url => {
+    frontBlobImage = url;
+  });
+  uploadImageToImgBB(backImage).then(url => {
+    backBlobImage = url;
+  });
+
+  // Create a parent div for each image and its footer
+  const FrontDiv = document.createElement('div');
+  FrontDiv.className = 'modal-img-parent';
+
+  const imgFrontTitleDiv = document.createElement('div');
+  imgFrontTitleDiv.className = 'modal-title-div';
+  imgFrontTitleDiv.innerText = 'Front Of Card';
+  // Create a div for the image
+  const imgFrontDiv = document.createElement('div');
+  imgFrontDiv.className = 'modal-img-div';
+
+  // Create img element for the captured image
+  const imgFrontElement = document.createElement('img');
+  imgFrontElement.src = frontImage;
+  imgFrontElement.className = 'modal-img';
+  imgFrontDiv.appendChild(imgFrontElement);
+
+  // Create footer element
+  const FrontButton = document.createElement('div');
+  FrontButton.className = 'modal-img-footer';
+
+  const FrontButtonImg = document.createElement('img');
+  FrontButtonImg.src = chrome.runtime.getURL('images/camera.png');
+  FrontButtonImg.className = 'modal-camera-img';
+  FrontButton.appendChild(FrontButtonImg);
+
+  const FrontButtonText = document.createElement('span');
+  if (frontImage === '') FrontButtonText.textContent = 'Capture Front';
+  else {
+    FrontButtonText.textContent = 'Recapture Front';
+  }
+  FrontButton.appendChild(FrontButtonText);
+
+  FrontButton.onclick = () => {
+    document.body.removeChild(modalOverlay);
+    captureSelection(true);
+  }
+  // Append image, footer, and additional content to parent div
+  FrontDiv.appendChild(imgFrontTitleDiv);
+  FrontDiv.appendChild(imgFrontDiv);
+  FrontDiv.appendChild(FrontButton);
+  // Append the parent div to the image container
+  imgContainer.appendChild(FrontDiv);
+
+  // Create a parent div for each image and its footer
+  const BackDiv = document.createElement('div');
+  BackDiv.className = 'modal-img-parent';
+
+  const imgBackTitleDiv = document.createElement('div');
+  imgBackTitleDiv.className = 'modal-title-div';
+  imgBackTitleDiv.innerText = 'Back Of Card';
+
+  // Create a div for the image
+  const imgBackDiv = document.createElement('div');
+  imgBackDiv.className = 'modal-img-div';
+
+
+  // Create img element for the captured image
+  const imgBackElement = document.createElement('img');
+
+  const BackButton = document.createElement('div');
+  BackButton.className = 'modal-img-footer';
+
+  const BackButtonImg = document.createElement('img');
+  BackButtonImg.src = chrome.runtime.getURL('images/camera.png');
+  BackButtonImg.className = 'modal-camera-img';
+  BackButton.appendChild(BackButtonImg);
+
+  const BackButtonText = document.createElement('span');
+
+  if (backImage === '') {
+    imgBackElement.src = chrome.runtime.getURL('images/optional.png');
+    imgBackElement.className = 'modal-img';
+    imgBackElement.style.width = '145px';
+    imgBackElement.style.height = '263px';
+    imgBackDiv.appendChild(imgBackElement);
+    BackButtonText.textContent = 'Capture Back';
+  }
+  else {
+    imgBackElement.src = backImage;
+    imgBackElement.className = 'modal-img';
+    imgBackDiv.appendChild(imgBackElement);
 
     // Create footer element
-    const FrontButton = document.createElement('div');
-    FrontButton.className = 'modal-img-footer';
-    
-    const FrontButtonImg = document.createElement('img');
-    FrontButtonImg.src = chrome.runtime.getURL('images/camera.png');
-    FrontButtonImg.className = 'modal-camera-img';
-    FrontButton.appendChild(FrontButtonImg);
-    
-    const FrontButtonText = document.createElement('span');
-    if(frontImage === '') FrontButtonText.textContent = 'Capture Front';
-    else {
-      FrontButtonText.textContent = 'Recapture Front';
-    }
-    FrontButton.appendChild(FrontButtonText);
+    BackButtonText.textContent = 'Recapture Back';
+  }
+  BackButton.appendChild(BackButtonText);
+  BackButton.onclick = () => {
+    document.body.removeChild(modalOverlay);
+    captureSelection(false);
+  }
+  // Append image, footer, and additional content to parent div
+  BackDiv.appendChild(imgBackTitleDiv);
+  BackDiv.appendChild(imgBackDiv);
+  BackDiv.appendChild(BackButton);
+  // Append the parent div to the image container
+  imgContainer.appendChild(BackDiv);
 
-    FrontButton.onclick = () => {
-      document.body.removeChild(modalOverlay);
-      captureSelection(true);
-    }
-    // Append image, footer, and additional content to parent div
-    FrontDiv.appendChild(imgFrontTitleDiv);
-    FrontDiv.appendChild(imgFrontDiv);
-    FrontDiv.appendChild(FrontButton);
-    // Append the parent div to the image container
-    imgContainer.appendChild(FrontDiv);
+  content.appendChild(imgContainer);
 
-    // Create a parent div for each image and its footer
-    const BackDiv = document.createElement('div');
-    BackDiv.className = 'modal-img-parent';
-    
-    const imgBackTitleDiv = document.createElement('div');
-    imgBackTitleDiv.className = 'modal-title-div';
-    imgBackTitleDiv.innerText = 'Back Of Card';
-
-    // Create a div for the image
-    const imgBackDiv = document.createElement('div');
-    imgBackDiv.className = 'modal-img-div';
-    
-    uploadImageToImgBB(dataUrl).then(url => {
-      imgURL = url;
-    });
-    // Create img element for the captured image
-    const imgBackElement = document.createElement('img');
-    
-    const BackButton = document.createElement('div');
-    BackButton.className = 'modal-img-footer';
-
-    const BackButtonImg = document.createElement('img');
-    BackButtonImg.src = chrome.runtime.getURL('images/camera.png');
-    BackButtonImg.className = 'modal-camera-img';
-    BackButton.appendChild(BackButtonImg);
-
-    const BackButtonText = document.createElement('span');
-    
-    if(backImage === '') {
-      imgBackElement.src = chrome.runtime.getURL('images/optional.png');
-      imgBackElement.className = 'modal-img';
-      imgBackElement.style.width = '145px';
-      imgBackElement.style.height = '263px';
-      imgBackDiv.appendChild(imgBackElement);
-      BackButtonText.textContent = 'Capture Back';
-    }
-    else { 
-      imgBackElement.src = backImage;
-      imgBackElement.className = 'modal-img';
-      imgBackDiv.appendChild(imgBackElement);
-      
-      // Create footer element
-      BackButtonText.textContent = 'Recapture Back';
-    }
-    BackButton.appendChild(BackButtonText);
-    BackButton.onclick = () => {
-      document.body.removeChild(modalOverlay);
-      captureSelection(false);
-    }
-    // Append image, footer, and additional content to parent div
-    BackDiv.appendChild(imgBackTitleDiv);
-    BackDiv.appendChild(imgBackDiv);
-    BackDiv.appendChild(BackButton);
-    // Append the parent div to the image container
-    imgContainer.appendChild(BackDiv);
-
-    content.appendChild(imgContainer);
-    
   // Create Modal footer
   const footer = document.createElement('div');
   footer.className = 'modal-footer';
@@ -412,33 +416,32 @@ function showModal(message, dataUrl) {
   const buttonContainer = document.createElement('div');
   buttonContainer.className = 'modal-button-container';
 
+
   const submitButton = document.createElement('button');
   submitButton.textContent = 'SUBMIT';
   submitButton.className = 'modal-button primary';
   submitButton.onclick = () => {
-    console.log('Submit clicked', imgURL);
-    
-    const redirectUrl = `http://18.116.195.167/extension/scs?v=chrome-1.1.0&imgsrc=${encodeURIComponent(imgURL)}`;
-    
-    //   chrome.tabs.create({ url: redirectUrl }, (tab) => {
-    //     console.log('Redirecting to:', redirectUrl);
-    // } );
+    let redirectUrl = '';
+    if (backImage === '') {
+      redirectUrl = `http://18.116.195.167/extension/scs?v=chrome-1.1.0&imgsrc=${encodeURIComponent(frontBlobImage)}`;
+    } else {
+      redirectUrl = `http://18.116.195.167/extension/scs?v=chrome-1.1.0&imgsrc=${encodeURIComponent(frontBlobImage)}&backimgsrc=${encodeURIComponent(backBlobImage)}`;
+    }
 
     chrome.runtime.sendMessage({ type: 'redirect', url: redirectUrl }, () => {
-        console.log('Redirecting to:', redirectUrl);
+      console.log('Redirecting to:', redirectUrl);
     });
 
     document.body.removeChild(modalOverlay);
-    // capturedImages = [];
   };
 
   const cancelButton = document.createElement('button');
   cancelButton.textContent = 'CANCEL';
   cancelButton.className = 'modal-button cancel';
   cancelButton.onclick = () => {
-    console.log('Cancel clicked');
     document.body.removeChild(modalOverlay);
-    capturedImages = []; // Reset captured images array
+    frontImage = '';
+    backImage = '';
   };
 
   buttonContainer.appendChild(cancelButton);
@@ -480,9 +483,9 @@ function captureSelection(flag) {
   topBar.style.left = 20;
   topBar.style.right = 20;
   topBar.style.width = '100%';
-  topBar.style.height = '150px';
+  topBar.style.height = '100%';
   topBar.style.display = 'flex';
-  topBar.style.alignItems = 'center';
+  topBar.style.alignItems = 'baseline';
   topBar.style.textAlign = 'center';
   topBar.style.justifyContent = 'space-around';
   topBar.style.padding = '20px 10px';
@@ -490,7 +493,8 @@ function captureSelection(flag) {
   topBar.style.color = '#ffffff';
   topBar.style.fontSize = '16px';
   topBar.style.fontFamily = 'Poppins';
-  // topBar.style.border = '2px dashed white';
+  topBar.style.pointerEvents = 'none';
+
   overlay.appendChild(topBar);
 
   // Add image
@@ -521,14 +525,14 @@ function captureSelection(flag) {
     overlay.remove();
   };
   topBar.appendChild(cancelButton);
-  
-  document.onkeydown = function(evt) {
+
+  document.onkeydown = function (evt) {
     evt = evt || window.event;
     let isEscape = false;
     if ("key" in evt) {
-        isEscape = (evt.key === "Escape" || evt.key === "Esc");
+      isEscape = (evt.key === "Escape" || evt.key === "Esc");
     } else {
-        isEscape = (evt.keyCode === 27);
+      isEscape = (evt.keyCode === 27);
     }
     if (isEscape) {
       overlay.remove();
@@ -540,111 +544,154 @@ function captureSelection(flag) {
   selectionBox.style.border = '2px dashed white';
   selectionBox.style.position = 'absolute';
   selectionBox.style.display = 'none';
+  selectionBox.style.background = 'rgba(255, 255, 255, 0.7)';
   overlay.appendChild(selectionBox);
-  
+
+
+  // Create mask overlays
+  const topMask = document.createElement('div');
+  topMask.style.position = 'absolute';
+  topMask.style.backgroundColor = 'rgba(0, 0, 0, 0.5)'
+  overlay.appendChild(topMask);
+
+  const bottomMask = document.createElement('div');
+  bottomMask.style.position = 'absolute';
+  bottomMask.style.backgroundColor = 'rgba(0, 0, 0, 0.5)'
+  overlay.appendChild(bottomMask);
+
+  const leftMask = document.createElement('div');
+  leftMask.style.position = 'absolute';
+  leftMask.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+  overlay.appendChild(leftMask);
+
+  const rightMask = document.createElement('div');
+  rightMask.style.position = 'absolute';
+  rightMask.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+  overlay.appendChild(rightMask);
+
   function onMouseDown(e) {
+    e.preventDefault();
     startX = e.clientX;
     startY = e.clientY;
     selectionBox.style.left = `${startX}px`;
     selectionBox.style.top = `${startY}px`;
     selectionBox.style.width = 0;
     selectionBox.style.height = 0;
+    selectionBox.style.backgroundColor = 'transparent';
+    overlay.style.backgroundColor = 'transparent'
+
     selectionBox.style.display = 'block';
     overlay.addEventListener('mousemove', onMouseMove);
     overlay.addEventListener('mouseup', onMouseUp);
   }
 
   function onMouseMove(e) {
+    e.preventDefault();
     endX = e.clientX;
     endY = e.clientY;
-    selectionBox.style.width = `${Math.abs(endX - startX)}px`;
-    selectionBox.style.height = `${Math.abs(endY - startY)}px`;
+    selectionBox.style.width = `${Math.abs(endX - startX) - 3}px`;
+    selectionBox.style.height = `${Math.abs(endY - startY) - 3}px`;
     selectionBox.style.left = `${Math.min(startX, endX)}px`;
     selectionBox.style.top = `${Math.min(startY, endY)}px`;
+
+    const topY = Math.min(startY, endY);
+    const bottomY = Math.max(startY, endY);
+    const leftX = Math.min(startX, endX);
+    const rightX = Math.max(startX, endX)
+
+
+    topMask.style.top = 0;
+    topMask.style.left = 0;
+    topMask.style.width = '100vw';
+    topMask.style.height = `${topY}px`;
+
+    bottomMask.style.top = `${bottomY}px`;
+    bottomMask.style.left = 0;
+    bottomMask.style.width = '100vw';
+    bottomMask.style.height = `calc(100vh - ${bottomY}px)`;
+
+    leftMask.style.top = `${topY}px`;
+    leftMask.style.left = 0;
+    leftMask.style.width = `${leftX}px`;
+    leftMask.style.height = `${bottomY - topY}px`;
+
+    rightMask.style.top = `${topY}px`;
+    rightMask.style.left = `${rightX}px`;
+    rightMask.style.width = `calc(100vw - ${rightX}px)`;
+    rightMask.style.height = `${bottomY - topY}px`;
+
   }
 
   function onMouseUp() {
     overlay.removeEventListener('mousemove', onMouseMove);
     overlay.removeEventListener('mouseup', onMouseUp);
-      chrome.runtime.sendMessage({
-        type: 'capture',
-        startX: Math.min(startX, endX),
-        startY: Math.min(startY, endY),
-        width: Math.abs(endX - startX),
-        height: Math.abs(endY - startY),
-        cardType: flag
-      }, (response) => {
-        chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-          // console.log('Message received in background:', message);
-          if (message.type === 'capture') {
-            console.log('Capture message received:', message);
-        
-            chrome.tabs.captureVisibleTab({ format: 'png' }, (dataUrl) => {
-              if (chrome.runtime.lastError) {
-                console.error('Error capturing tab:', chrome.runtime.lastError);
-                sendResponse({ success: false });
-                return;
-              }
-              chrome.tabs.sendMessage(sender.tab.id, {
-                type: 'processImage',
-                dataUrl: dataUrl,
-                startX: message.startX,
-                startY: message.startY,
-                width: message.width,
-                height: message.height,
-                cardType: flag
-              }, (response) => {
-                sendResponse({ success: true });
-              });
-        
-              return true;
+    chrome.runtime.sendMessage({
+      type: 'capture',
+      startX: Math.min(startX + 4, endX),
+      startY: Math.min(startY + 4, endY),
+      width: Math.abs(endX - 4 - startX),
+      height: Math.abs(endY - 4 - startY),
+      cardType: flag
+    }, (response) => {
+      chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+        if (message.type === 'capture') {
+          chrome.tabs.captureVisibleTab({ format: 'png' }, (dataUrl) => {
+            if (chrome.runtime.lastError) {
+              sendResponse({ success: false });
+              return;
+            }
+            chrome.tabs.sendMessage(sender.tab.id, {
+              type: 'processImage',
+              dataUrl: dataUrl,
+              startX: message.startX,
+              startY: message.startY,
+              width: message.width,
+              height: message.height,
+              cardType: flag
+            }, (response) => {
+              sendResponse({ success: true });
             });
-          } else if (message.type === 'downloadImage') {
-            // chrome.downloads.download({
-            //   url: message.url,
-            //   filename: 'capture.png'
-            // }, (downloadId) => {
-            //   if (chrome.runtime.lastError) {
-            //     console.error('Error downloading file:', chrome.runtime.lastError);
-            //   } else {
-            //     console.log('Download started, ID:', downloadId);
-            //   }
-            // });
-          }
-        });
-        // if (response.success) {
-        //   showModal(response.dataUrl);
-        // } else {
-        //   console.error('Failed to capture tab');
-        // }
+
+            return true;
+          });
+        } else if (message.type === 'downloadImage') {
+          // chrome.downloads.download({
+          //   url: message.url,
+          //   filename: 'capture.png'
+          // }, (downloadId) => {
+          //   if (chrome.runtime.lastError) {
+          //     console.error('Error downloading file:', chrome.runtime.lastError);
+          //   } else {
+          //     console.log('Download started, ID:', downloadId);
+          //   }
+          // });
+        }
       });
 
-      overlay.remove();
-      // document.removeEventListener('keydown', onKeyDown);
-    // }
-    // overlay.appendChild(saveButton);
-  }
+    });
 
+    overlay.remove();
+  }
   overlay.addEventListener('mousedown', onMouseDown);
 }
 
-function b64toBlob(b64Data, contentType='', sliceSize=512) {
+function b64toBlob(b64Data, contentType = '', sliceSize = 512) {
   const byteCharacters = atob(b64Data);
   const byteArrays = [];
 
   for (let offset = 0; offset < byteCharacters.length; offset += sliceSize) {
-      const slice = byteCharacters.slice(offset, offset + sliceSize);
+    const slice = byteCharacters.slice(offset, offset + sliceSize);
 
-      const byteNumbers = new Array(slice.length);
-      for (let i = 0; i < slice.length; i++) {
-          byteNumbers[i] = slice.charCodeAt(i);
-      }
+    const byteNumbers = new Array(slice.length);
+    for (let i = 0; i < slice.length; i++) {
+      byteNumbers[i] = slice.charCodeAt(i);
+    }
 
-      const byteArray = new Uint8Array(byteNumbers);
-      byteArrays.push(byteArray);
+    const byteArray = new Uint8Array(byteNumbers);
+    byteArrays.push(byteArray);
   }
 
-  const blob = new Blob(byteArrays, {type: contentType});
+  const blob = new Blob(byteArrays, { type: contentType });
   return blob;
 }
 
@@ -666,6 +713,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         let reader = new FileReader();
         reader.onloadend = () => {
           let base64data = reader.result;
+
           chrome.runtime.sendMessage({
             type: 'downloadImage',
             blobData: base64data
@@ -678,6 +726,5 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     img.onerror = (e) => {
       console.error('Error loading image:', e);
     };
-    // showModal(message); // Show modal after capturing and processing image
   }
 });

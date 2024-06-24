@@ -27,7 +27,9 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     });
   } else if (message.type === 'redirect') {
     const redirectUrl = message.url;
-    chrome.tabs.update(sender.tab.id, { url: redirectUrl });
+    chrome.tabs.create({url: redirectUrl, active: false, index: sender.tab.id});
+    
+    // chrome.tabs.update(sender.tab.id, { url: redirectUrl });
   } 
   // else if (message.type === 'downloadImage') {
     // chrome.downloads.download({
