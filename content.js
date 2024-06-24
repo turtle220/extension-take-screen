@@ -433,6 +433,8 @@ function showModal(message, dataUrl) {
     });
 
     document.body.removeChild(modalOverlay);
+    frontImage = '';
+    backImage = '';
   };
 
   const cancelButton = document.createElement('button');
