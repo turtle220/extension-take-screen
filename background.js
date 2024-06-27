@@ -1,9 +1,6 @@
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  console.log('Message received in background:', message);
 
   if (message.type === 'capture') {
-    console.log('Capture message received:', message);
-
     chrome.tabs.captureVisibleTab({ format: 'png' }, (dataUrl) => {
       if (chrome.runtime.lastError) {
         console.error('Error capturing tab:', chrome.runtime.lastError);

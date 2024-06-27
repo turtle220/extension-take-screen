@@ -627,12 +627,14 @@ function captureSelection(flag) {
   function onMouseUp() {
     overlay.removeEventListener('mousemove', onMouseMove);
     overlay.removeEventListener('mouseup', onMouseUp);
+    const devicePixelRatio = window.devicePixelRatio;
+
     chrome.runtime.sendMessage({
       type: 'capture',
-      startX: Math.min(startX + 4, endX),
-      startY: Math.min(startY + 4, endY),
-      width: Math.abs(endX - 4 - startX),
-      height: Math.abs(endY - 4 - startY),
+      startX: Math.min(startX + 4, endX) * devicePixelRatio,
+      startY: Math.min(startY + 4, endY) * devicePixelRatio,
+      width: Math.abs(endX - 4 - startX) * devicePixelRatio,
+      height: Math.abs(endY - 4 - startY) * devicePixelRatio,
       cardType: flag
     }, (response) => {
       chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
@@ -676,27 +678,6 @@ function captureSelection(flag) {
   }
   overlay.addEventListener('mousedown', onMouseDown);
 }
-
-function b64toBlob(b64Data, contentType = '', sliceSize = 512) {
-  const byteCharacters = atob(b64Data);
-  const byteArrays = [];
-
-  for (let offset = 0; offset < byteCharacters.length; offset += sliceSize) {
-    const slice = byteCharacters.slice(offset, offset + sliceSize);
-
-    const byteNumbers = new Array(slice.length);
-    for (let i = 0; i < slice.length; i++) {
-      byteNumbers[i] = slice.charCodeAt(i);
-    }
-
-    const byteArray = new Uint8Array(byteNumbers);
-    byteArrays.push(byteArray);
-  }
-
-  const blob = new Blob(byteArrays, { type: contentType });
-  return blob;
-}
-
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.type === 'startCapture') {
